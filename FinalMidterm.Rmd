@@ -1,0 +1,186 @@
+---
+title: "MidTermFinal"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Code for project
+
+```{r}
+
+# R Code for project
+
+require("readxl")
+library(dplyr)
+require(mosaic)
+mydata <- read_excel("ZOS.xlsx")
+attach(mydata)
+str(mydata)
+summary(mydata)
+```
+
+## Including Plots
+
+### Crime Rate vs. Age
+
+```{r}
+
+# Including Plots
+
+# Crime Rate vs. Age
+
+boxplot( mydata$Crime ~ mydata$Age,
+        notch = F,
+        las = 1,
+        ylab = "Crime Score",
+        xlab = "Age Group",
+        main= "Crime Rate Ranking Score vs. Age")
+```
+
+### Crime Rate vs. Race
+
+```{r}
+
+# Crime Rate vs. Race
+
+meanWhite <- mean(mydata$Crime[mydata$Race=='White'])
+meanAsian <- mean(mydata$Crime[mydata$Race=='Asian'])
+meanOthers <- mean(mydata$Crime[mydata$Race=='Others'])
+meanHispanic <- mean(mydata$Crime[mydata$Race=='Hispanic or Latino'])
+meanBlack <- mean(mydata$Crime[mydata$Race=='Black or African American'])
+
+mean1 <- c(meanAsian,meanWhite, meanHispanic, meanOthers,meanBlack)
+race1 <- c("Asian","White","Hispanic","Others","Black")
+
+df1 <- data.frame(race1,mean1)
+plot(df1, ylim = c(0,5), xlab="Race",ylab="Crime Score", main = "Crime Rate Ranking Score vs. Race")
+```
+
+### Proximity Score vs. Age
+
+```{r}
+
+# Proximity Score vs. Age
+
+boxplot( mydata$Proximity ~ mydata$Age,
+        notch = F,
+        las = 1,
+        ylab = "Proximity Score",
+        xlab = "Age",
+        main= "Proximity Ranking Score  vs. Age")
+
+```
+
+### Commute Score vs. Age
+
+```{r}
+
+# Commute Score vs. Age
+
+boxplot( mydata$Commute ~ mydata$Age,
+        notch = F,
+        las = 1,
+        ylab = "Commute Score",
+        xlab = "Age",
+        main= "Commute Ranking Score  vs. Age")
+```
+
+
+## Q-Q Plot
+
+```{r echo=TRUE}
+
+# Q-Q Plot
+
+par(mfrow=c(2,2))
+
+qqnorm(mydata$Crime,  main='(a) Normal Q-Q Plot - qrnorm() for All Genders', cex.main=0.85 )
+qqline(mydata$Crime)
+
+qqnorm(mydata$Crime[mydata$Gender=="Male"],  main='(b) Normal Q-Q Plot - qrnorm() for Male Participants', cex.main=0.85)
+qqline(mydata$Crime[mydata$Gender=="Male"])
+
+qqnorm(mydata$Crime[mydata$Gender=="Female"],  main='(c) Normal Q-Q Plot - qrnorm() for Female Participants', cex.main=0.85)
+qqline(mydata$Crime[mydata$Gender=="Female"])
+
+qqplot(mydata$Crime[mydata$Gender=="Male"], mydata$Crime[mydata$Gender=="Female"], main = "(d) Normal Q-Q Plot - qqplot()",
+       xlab = "Crime Scores Rated by Females", ylab = "Crime Scores Rated by Males", cex.main=1.00, cex.lab=0.8, cex.axis=1)
+abline(0,1)
+```
+
+## Two Sided T-Test
+
+### Calculation of P value
+```{r}
+
+# Two Sided T-Test
+
+# Calculation of P value
+
+mydata <- read_excel("ZOS.xlsx")
+# the parts of the test statistic
+# sample means
+x_bar_f <- mean(mydata$Crime[mydata$Gender=="Female"])
+x_bar_m <- mean(mydata$Crime[mydata$Gender=="Male"])
+# null hypothesized population mean difference between the two groups
+mu_0 <- 0
+# sample variances
+s_f_sq <- sd(mydata$Crime[mydata$Gender=="Female"])**2
+s_m_sq <- sd(mydata$Crime[mydata$Gender=="Male"])**2
+# sample size
+n_f <- length(mydata$Crime[mydata$Gender=="Female"])
+n_m <- length(mydata$Crime[mydata$Gender=="Male"])
+# t-test test statistic
+t <- (x_bar_f - x_bar_m - mu_0)/sqrt((s_f_sq/n_f) + (s_m_sq/n_m))
+# one sided upper p-value
+pval <- pt(q = t, df = min(n_f, n_m)-1, lower.tail = FALSE)*2 
+pval
+```
+
+### Calculation Of Confidence Interval
+
+```{r}
+
+# Calculation Of Confidence Interval
+
+#lower bound
+L_bound <-(x_bar_f-x_bar_m)+(qt(0.025, min(n_f, n_m)-1)*sqrt((s_f_sq/n_f) + (s_m_sq/n_m)))
+L_bound 
+
+#upper bound
+U_bound <-(x_bar_f-x_bar_m)+(qt(0.975, min(n_f, n_m)-1)*sqrt((s_f_sq/n_f) + (s_m_sq/n_m)))
+U_bound
+```
+
+### R Built In T-Test
+```{r}
+
+# R Built In T-Test
+
+t.test(mydata$Crime[mydata$Gender=="Female"],mydata$Crime[mydata$Gender=="Male"])
+
+```
+
+## Sampling Distribution
+
+```{r echo=TRUE}
+
+# Sampling Distribution
+
+set.seed(110)
+X_bar10 <- do(1000) * mean(sample(mydata$Crime,30))
+h3<- hist(X_bar10$mean,main = "Sampling Distribution; Size = 30, Simulations = 1000", xlab = 'Crime Rate Ranking Scores')
+xfit<-seq(min(X_bar10$mean),max(X_bar10$mean),length=250)
+yfit<-dnorm(xfit,mean=mean(X_bar10$mean),sd=sd(X_bar10$mean))
+yfit <- yfit*diff(h3$mids[1:2])*length(X_bar10$mean)
+lines(xfit, yfit, col="blue", lwd=2)
+```
+
+## Appendix
+
+```{r ref.label=knitr::all_labels(), echo = T, eval = F}
+
+```
